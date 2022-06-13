@@ -3,9 +3,9 @@
 //! Utility crate to handle common tasks that require graphs
 //!
 //! ```
-//! use comtesse::Graph;
+//! use comtesse::Unweighted;
 //!
-//! let mut graph = Graph::new();
+//! let mut graph = Unweighted::new();
 //! // insert the numbers 1 to 10 as vertices
 //! for i in 1..=10 {
 //!     graph.add_vertex(i);
@@ -31,7 +31,7 @@ trait DumpGraphviz {
 mod tests {
     use std::{collections::HashSet, io::Write};
 
-    use crate::{graph::Graph, DumpGraphviz};
+    use crate::{graph::Graph, unweighted::Unweighted, DumpGraphviz};
 
     fn dump<V, E>(graph: &Graph<V, E>)
     where
@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_size() {
-        let mut graph = Graph::new();
+        let mut graph = Unweighted::new();
         let a = graph.add_vertex(1);
         let b = graph.add_vertex(2);
         let c = graph.add_vertex(3);
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn construct() {
-        let mut graph = Graph::new();
+        let mut graph = Unweighted::new();
         for i in 1..=10 {
             graph.add_vertex(i);
         }
@@ -86,7 +86,7 @@ mod tests {
     #[test]
     fn dfs() {
         let graph = {
-            let mut graph = Graph::new();
+            let mut graph = Unweighted::new();
             for i in 2..=11 {
                 graph.add_vertex(i);
             }
