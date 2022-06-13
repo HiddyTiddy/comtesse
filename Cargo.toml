@@ -7,7 +7,7 @@ description = "graph utilities"
 homepage = "https://github.com/HiddyTiddy/comtesse"
 repository = "https://github.com/HiddyTiddy/comtesse"
 readme = "README.md"
-categories = ["graph"]
+categories = ["algorithms"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
