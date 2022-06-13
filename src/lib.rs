@@ -99,6 +99,12 @@ impl<V> Graph<V> {
         let from = from.0;
         self.edges[from].iter().any(|&idx| idx == to)
     }
+
+    /// returns a list of neighbors of `vertex` in the graph
+    pub fn neighbors(&self, vertex: Handle) -> &[Handle] {
+        let vertex = vertex.0;
+        &self.edges[vertex]
+    }
 }
 
 impl<V> FromIterator<V> for Graph<V> {
@@ -136,6 +142,7 @@ fn make_safer(input: &str) -> Cow<'_, str> {
     }
 }
 
+// TODO this shouldnt really be Debug
 impl<V> Debug for Graph<V>
 where
     V: Debug,
@@ -232,8 +239,31 @@ mod tests {
         let six = graph.get_vertex(6).expect("6 is in 1..=10");
         let seven = graph.get_vertex(7).expect("7 is in 1..=10");
 
-        dump(&graph);
         assert!(graph.edge_exists(two, six));
         assert!(!graph.edge_exists(two, seven));
+    }
+
+    #[test]
+    fn dfs() {
+        let graph = {
+            let mut graph = Graph::new();
+            for i in 2..=11 {
+                graph.add_vertex(i);
+            }
+            assert_eq!(graph.size(), 10);
+
+            graph.construct_edges_from(|&u, &v| u != v && u % v == 1);
+            graph
+        };
+
+        let mut stack = vec![graph.get_vertex(8).expect("8 is in 2..=11")];
+        let dest = graph.get_vertex(4).expect("4 is in 2..=11");
+
+        let mut seen = vec![false; seen.len()];
+        while let Some(top) = stack.pop() {
+            for neighbor in graph.neighbors(top) {}
+        }
+
+        dump(&graph);
     }
 }
