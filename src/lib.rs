@@ -53,6 +53,7 @@ impl<V> Graph<V> {
         }
     }
 
+    /// Adds vertex with given `value` to graph. This returns a handle to the inserted element
     pub fn add_vertex(&mut self, value: V) -> Handle {
         let handle = self.vertices.len();
         self.vertices.push(value);
@@ -60,18 +61,22 @@ impl<V> Graph<V> {
         handle
     }
 
+    /// Connects two vertices, as given by `from` and `to`
     pub fn add_edge(&mut self, from: Handle, to: Handle) {
         self.edges[from].push(to);
     }
 
+    /// Returns the number of vertices in the graph.
     pub fn size(&self) -> usize {
         self.vertices.len()
     }
 
+    /// Returns the number of edges in the graph.
     pub fn num_edges(&self) -> usize {
         self.edges.iter().map(|elem| elem.len()).sum()
     }
 
+    /// Constructs edges that satisfy the given `condition`
     pub fn construct_edges_from<F>(&mut self, condition: F)
     where
         F: Fn(&V, &V) -> bool,
@@ -85,6 +90,7 @@ impl<V> Graph<V> {
         }
     }
 
+    /// Returns whether the edge starting at `from` and going to `to` exists in the graph
     pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
         self.edges[from].iter().any(|&idx| idx == to)
     }
