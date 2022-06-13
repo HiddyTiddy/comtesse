@@ -23,7 +23,7 @@ pub mod graph;
 pub mod unweighted;
 pub mod weighted;
 
-trait DumpGraphviz {
+pub(crate) trait DumpGraphviz {
     fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error>;
 }
 
@@ -33,7 +33,7 @@ mod tests {
 
     use crate::{graph::Graph, unweighted::Unweighted, DumpGraphviz};
 
-    fn dump<V, E>(graph: &Graph<V, E>)
+    pub(crate) fn dump<V, E>(graph: &Graph<V, E>)
     where
         V: std::fmt::Debug,
         Graph<V, E>: DumpGraphviz,
