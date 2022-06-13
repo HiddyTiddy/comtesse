@@ -20,6 +20,7 @@
 use std::{
     borrow::Cow,
     fmt::{Debug, Formatter},
+    iter::repeat_with,
 };
 
 pub struct Graph<V> {
@@ -97,6 +98,18 @@ impl<V> Graph<V> {
     pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
         let from = from.0;
         self.edges[from].iter().any(|&idx| idx == to)
+    }
+}
+
+impl<V> FromIterator<V> for Graph<V> {
+    /// creates a new graph, taking the vertices from the iterator
+    fn from_iter<T: IntoIterator<Item = V>>(iter: T) -> Self {
+        let vertices: Vec<V> = iter.into_iter().collect();
+        let size = vertices.len();
+        Graph {
+            vertices,
+            edges: repeat_with(Vec::new).take(size).collect(),
+        }
     }
 }
 
