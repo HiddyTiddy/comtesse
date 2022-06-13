@@ -62,13 +62,13 @@ fn make_safer(input: &str) -> Cow<'_, str> {
 }
 
 impl<V: Debug> DumpGraphviz for Unweighted<V> {
-    fn dump(&self, output: &mut dyn Write) {
-        writeln!(output, "digraph {{");
+    fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error> {
+        writeln!(output, "digraph {{")?;
         for vertex in &self.vertices {
             // TODO: vertex:? could inject stuff
             let vertex_str = format!("{vertex:?}");
             let vertex_str = make_safer(&vertex_str);
-            writeln!(output, "  \"{}\";", vertex_str);
+            writeln!(output, "  \"{}\";", vertex_str)?;
         }
 
         for (from, edge) in self.edges.iter().enumerate() {
@@ -81,9 +81,11 @@ impl<V: Debug> DumpGraphviz for Unweighted<V> {
                 let to = format!("{to:?}");
                 let to = make_safer(&to);
 
-                writeln!(output, "  \"{from}\" -> \"{to}\";\n");
+                writeln!(output, "  \"{from}\" -> \"{to}\";\n")?;
             }
         }
-        writeln!(output, "}}");
+        writeln!(output, "}}")?;
+
+        Ok(())
     }
 }

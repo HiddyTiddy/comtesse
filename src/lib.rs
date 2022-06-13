@@ -23,7 +23,7 @@ pub mod graph;
 pub mod unweighted;
 
 trait DumpGraphviz {
-    fn dump(&self, output: &mut dyn Write);
+    fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error>;
 }
 
 #[cfg(test)]
