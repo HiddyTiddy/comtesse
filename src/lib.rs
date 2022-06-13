@@ -21,6 +21,7 @@ use std::fmt::Write;
 
 pub mod graph;
 pub mod unweighted;
+pub mod weighted;
 
 trait DumpGraphviz {
     fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error>;
