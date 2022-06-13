@@ -191,7 +191,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::Write;
+    use std::{collections::HashSet, io::Write};
 
     use crate::Graph;
 
@@ -259,10 +259,23 @@ mod tests {
         let mut stack = vec![graph.get_vertex(8).expect("8 is in 2..=11")];
         let dest = graph.get_vertex(4).expect("4 is in 2..=11");
 
-        let mut seen = vec![false; seen.len()];
+        let mut length = 0;
+        let mut seen = HashSet::new();
         while let Some(top) = stack.pop() {
-            for neighbor in graph.neighbors(top) {}
+            length += 1;
+            if top == dest {
+                break;
+            }
+
+            for neighbor in graph.neighbors(top) {
+                if !seen.contains(neighbor) {
+                    stack.push(*neighbor);
+                    seen.insert(neighbor);
+                }
+            }
         }
+
+        assert!(length > 4);
 
         dump(&graph);
     }
