@@ -1,27 +1,19 @@
 //! A weighted Graph, containing vertices of type `V`
 
-use crate::graph::{Graph, Handle};
+use std::fmt::Write;
+
+use crate::{
+    graph::{Graph, Handle},
+    make_safer, DumpGraphviz,
+};
 
 #[derive(Clone, Copy)]
 pub struct Connection<W>
 where
     W: Copy,
 {
-    to: Handle,
-    weight: W,
-}
-
-impl<W> Connection<W>
-where
-    W: Copy,
-{
-    pub fn weight(&self) -> W {
-        self.weight
-    }
-
-    pub fn to(&self) -> Handle {
-        self.to
-    }
+    pub to: Handle,
+    pub weight: W,
 }
 
 pub type Weighted<V, W> = Graph<V, Connection<W>>;
@@ -61,9 +53,79 @@ where
             .any(|&Connection { to: idx, .. }| idx == to)
     }
 
+    pub fn get_edge(&self, from: Handle, to: Handle) -> Option<W> {
+        let from = from.0;
+        self.edges[from]
+            .iter()
+            .find(|&Connection { to: idx, .. }| *idx == to)
+            .map(|Connection { weight, .. }| *weight)
+    }
+
     /// returns a list of neighbors of `vertex` in the graph
     pub fn neighbors(&self, vertex: Handle) -> &[Connection<W>] {
         let vertex = vertex.0;
         &self.edges[vertex]
+    }
+}
+
+impl<V, W> DumpGraphviz for Weighted<V, W>
+where
+    V: std::fmt::Debug,
+    W: std::fmt::Debug + Copy,
+{
+    fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error> {
+        writeln!(output, "digraph {{")?;
+        for vertex in &self.vertices {
+            // TODO: vertex:? could inject stuff
+            let vertex_str = format!("{vertex:?}");
+            let vertex_str = make_safer(&vertex_str);
+            writeln!(output, "  \"{}\";", vertex_str)?;
+        }
+
+        for (from, edge) in self.edges.iter().enumerate() {
+            let from = &self.vertices[from];
+            let from = format!("{from:?}");
+            let from = make_safer(&from);
+
+            for to in edge {
+                let (to, weight) = (&self.vertices[to.to.0], to.weight);
+                let to = format!("{to:?}");
+                let to = make_safer(&to);
+
+                writeln!(output, "  \"{from}\" -> \"{to}\" [label=\"{weight:?}\"];\n")?;
+            }
+        }
+        writeln!(output, "}}")?;
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Weighted;
+
+    #[test]
+    fn construct_weighted() {
+        let mut graph: Weighted<_, f32> = ('a'..='f').collect();
+        graph.construct_edges_from(|&from, &to| match (from, to) {
+            ('a', 'b') => Some(9.0),
+            ('a', 'd') => Some(8.0),
+            ('b', 'c') => Some(1.0),
+            ('b', 'e') => Some(3.0),
+            ('c', 'e') => Some(1.0),
+            ('c', 'd') => Some(5.0),
+            ('d', 'f') => Some(8.0),
+            ('e', 'f') => Some(6.0),
+            _ => None,
+        });
+
+        let a = graph.get_vertex('a').expect("'a' is in V");
+        let b = graph.get_vertex('b').expect("'b' is in V");
+
+        let weight = graph.get_edge(a, b).expect("'a' -> 'b' exists");
+        assert!((weight - 9.0).abs() < 0.1);
+
+        crate::tests::dump(&graph);
     }
 }
