@@ -59,6 +59,10 @@ impl<V> Graph<V> {
             }
         }
     }
+
+    pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
+        self.edges[from].iter().any(|&idx| idx == to)
+    }
 }
 
 impl<V> Default for Graph<V> {
@@ -136,7 +140,7 @@ mod tests {
 
     use crate::Graph;
 
-    fn dump<V>(graph: Graph<V>)
+    fn dump<V>(graph: &Graph<V>)
     where
         V: std::fmt::Debug,
     {
@@ -165,8 +169,6 @@ mod tests {
 
         assert_eq!(4, graph.size());
         assert_eq!(3, graph.num_edges());
-
-        dump(graph);
     }
 
     #[test]
@@ -182,6 +184,8 @@ mod tests {
         let six = graph.get_vertex(6).expect("6 is in 1..=10");
         let seven = graph.get_vertex(7).expect("7 is in 1..=10");
 
-        dump(graph);
+        dump(&graph);
+        assert!(graph.edge_exists(two, six));
+        assert!(!graph.edge_exists(two, seven));
     }
 }
