@@ -1,3 +1,5 @@
+//! An unweighted graph, containing elements of type `V`
+
 use std::{
     borrow::Cow,
     fmt::{Debug, Write},

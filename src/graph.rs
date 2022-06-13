@@ -1,3 +1,5 @@
+//! A generic Graph, containing vertices of type `V`, connected by type `E`
+
 use std::iter::repeat_with;
 
 pub struct Graph<V, E> {
