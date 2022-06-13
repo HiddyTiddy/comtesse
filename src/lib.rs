@@ -17,192 +17,31 @@
 //! graph.construct_edges_from(|&u, &v| u != v && (u + v) % 10 == 0);
 //! ```
 
-use std::{
-    borrow::Cow,
-    fmt::{Debug, Formatter},
-    iter::repeat_with,
-};
+use std::fmt::Write;
 
-pub struct Graph<V> {
-    vertices: Vec<V>,
-    edges: Vec<Vec<Handle>>,
-}
+pub mod graph;
+pub mod unweighted;
 
-mod graph_macro;
-
-/// Handle to Vertices in the graoh
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
-pub struct Handle(usize);
-
-// TODO: generic over V, E
-// -> V: Vertex type
-// -> E: Edge type
-impl<V> Graph<V> {
-    /// Constructs a new, empty `Graph<V>`
-    pub fn new() -> Self {
-        Graph {
-            edges: vec![],
-            vertices: vec![],
-        }
-    }
-
-    /// Constructs a new, empty `Graph<V>` with capacity `size`
-    ///
-    /// The adjacency list will not reallocate if the number of vertices does not exceed `size`
-    pub fn new_with_size(size: usize) -> Self {
-        Graph {
-            edges: Vec::with_capacity(size),
-            vertices: Vec::with_capacity(size),
-        }
-    }
-
-    /// Adds vertex with given `value` to graph. This returns a handle to the inserted element
-    pub fn add_vertex(&mut self, value: V) -> Handle {
-        let handle = self.vertices.len();
-        self.vertices.push(value);
-        self.edges.push(Vec::new());
-        Handle(handle)
-    }
-
-    /// Connects two vertices, as given by `from` and `to`
-    pub fn add_edge(&mut self, from: Handle, to: Handle) {
-        let from = from.0;
-        self.edges[from].push(to);
-    }
-
-    /// Returns the number of vertices in the graph.
-    pub fn size(&self) -> usize {
-        self.vertices.len()
-    }
-
-    /// Returns the number of edges in the graph.
-    pub fn num_edges(&self) -> usize {
-        self.edges.iter().map(|elem| elem.len()).sum()
-    }
-
-    /// Constructs edges that satisfy the given `condition`
-    pub fn construct_edges_from<F>(&mut self, condition: F)
-    where
-        F: Fn(&V, &V) -> bool,
-    {
-        for u in 0..self.vertices.len() {
-            for v in 0..self.vertices.len() {
-                if condition(&self.vertices[u], &self.vertices[v]) {
-                    self.add_edge(Handle(u), Handle(v))
-                }
-            }
-        }
-    }
-
-    /// Returns whether the edge starting at `from` and going to `to` exists in the graph
-    pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
-        let from = from.0;
-        self.edges[from].iter().any(|&idx| idx == to)
-    }
-
-    /// returns a list of neighbors of `vertex` in the graph
-    pub fn neighbors(&self, vertex: Handle) -> &[Handle] {
-        let vertex = vertex.0;
-        &self.edges[vertex]
-    }
-}
-
-impl<V> FromIterator<V> for Graph<V> {
-    /// creates a new graph, taking the vertices from the iterator
-    fn from_iter<T: IntoIterator<Item = V>>(iter: T) -> Self {
-        let vertices: Vec<V> = iter.into_iter().collect();
-        let size = vertices.len();
-        Graph {
-            vertices,
-            edges: repeat_with(Vec::new).take(size).collect(),
-        }
-    }
-}
-
-impl<V> Default for Graph<V> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-fn make_safer(input: &str) -> Cow<'_, str> {
-    if let Some(ok_until) = input.find(|ch| ch == '"') {
-        let mut out = String::from(&input[..ok_until]);
-        out.reserve(input.len() - ok_until);
-        let rest = input[ok_until..].chars();
-        for ch in rest {
-            match ch {
-                '"' => out.push_str(r#"\""#),
-                _ => out.push(ch),
-            }
-        }
-        Cow::Owned(out)
-    } else {
-        Cow::Borrowed(input)
-    }
-}
-
-// TODO this shouldnt really be Debug
-impl<V> Debug for Graph<V>
-where
-    V: Debug,
-{
-    /// formats to a graphviz (dot) compatible *thing*
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str("digraph {\n")?;
-        for vertex in &self.vertices {
-            // TODO: vertex:? could inject stuff
-            let vertex_str = format!("{vertex:?}");
-            let vertex_str = make_safer(&vertex_str);
-            f.write_fmt(format_args!("  \"{}\";\n", vertex_str))?;
-        }
-
-        for (from, edge) in self.edges.iter().enumerate() {
-            let from = &self.vertices[from];
-            let from = format!("{from:?}");
-            let from = make_safer(&from);
-
-            for &to in edge {
-                let to = &self.vertices[to.0];
-                let to = format!("{to:?}");
-                let to = make_safer(&to);
-
-                f.write_fmt(format_args!("  \"{from}\" -> \"{to}\";\n"))?;
-            }
-        }
-        f.write_str("}")?;
-
-        Ok(())
-    }
-}
-
-impl<V> Graph<V>
-where
-    V: Eq,
-{
-    pub fn get_vertex(&self, vertex_value: V) -> Option<Handle> {
-        self.vertices
-            .iter()
-            .enumerate()
-            .find(|(_, vertex)| **vertex == vertex_value)
-            .map(|(i, _)| Handle(i))
-    }
+trait DumpGraphviz {
+    fn dump(&self, output: &mut dyn Write);
 }
 
 #[cfg(test)]
 mod tests {
     use std::{collections::HashSet, io::Write};
 
-    use crate::Graph;
+    use crate::{graph::Graph, DumpGraphviz};
 
-    fn dump<V>(graph: &Graph<V>)
+    fn dump<V, E>(graph: &Graph<V, E>)
     where
         V: std::fmt::Debug,
+        Graph<V, E>: DumpGraphviz,
     {
-        let graph = format!("{graph:?}");
+        let mut graph_str = String::new();
+        graph.dump(&mut graph_str);
         std::fs::File::create("dump.dot")
             .unwrap()
-            .write_all(graph.as_bytes())
+            .write_all(graph_str.as_bytes())
             .unwrap();
         std::process::Command::new("dot")
             .args(["-Tpng", "dump.dot", "-o", "dump.png"])
