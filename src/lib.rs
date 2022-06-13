@@ -38,7 +38,7 @@ mod tests {
         Graph<V, E>: DumpGraphviz,
     {
         let mut graph_str = String::new();
-        graph.dump(&mut graph_str);
+        graph.dump(&mut graph_str).unwrap();
         std::fs::File::create("dump.dot")
             .unwrap()
             .write_all(graph_str.as_bytes())
