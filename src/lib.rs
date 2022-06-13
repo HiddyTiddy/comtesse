@@ -1,3 +1,22 @@
+//! # Graph Utils
+//!
+//! Utility crate to handle common tasks that require graphs
+//!
+//! ```
+//! use graph::Graph;
+//!
+//! let mut graph = Graph::new();
+//! // insert the numbers 1 to 10 as vertices
+//! for i in 1..=10 {
+//!     graph.add_vertex(i);
+//! }
+//! assert_eq!(graph.size(), 10);
+//!
+//! // construct a graph satisfying the following condition
+//! // there exists an edge (u, v) if the condition holds
+//! graph.construct_edges_from(|&u, &v| u != v && (u + v) % 10 == 0);
+//! ```
+
 use std::{
     borrow::Cow,
     fmt::{Debug, Formatter},
@@ -8,12 +27,15 @@ pub struct Graph<V> {
     edges: Vec<Vec<Handle>>,
 }
 
+mod graph_macro;
+
 type Handle = usize;
 
 // TODO: generic over V, E
 // -> V: Vertex type
 // -> E: Edge type
 impl<V> Graph<V> {
+    /// Constructs a new, empty `Graph<V>`
     pub fn new() -> Self {
         Graph {
             edges: vec![],
@@ -21,6 +43,9 @@ impl<V> Graph<V> {
         }
     }
 
+    /// Constructs a new, empty `Graph<V>` with capacity `size`
+    ///
+    /// The adjacency list will not reallocate if the number of vertices doesnt exceed `size`
     pub fn new_with_size(size: usize) -> Self {
         Graph {
             edges: Vec::with_capacity(size),
