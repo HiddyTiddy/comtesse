@@ -45,7 +45,7 @@ impl<V> Graph<V> {
 
     /// Constructs a new, empty `Graph<V>` with capacity `size`
     ///
-    /// The adjacency list will not reallocate if the number of vertices doesnt exceed `size`
+    /// The adjacency list will not reallocate if the number of vertices does not exceed `size`
     pub fn new_with_size(size: usize) -> Self {
         Graph {
             edges: Vec::with_capacity(size),
