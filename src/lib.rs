@@ -17,7 +17,7 @@
 //! graph.construct_edges_from(|&u, &v| u != v && (u + v) % 10 == 0);
 //! ```
 
-use std::fmt::Write;
+use std::{borrow::Cow, fmt::Write};
 
 pub mod graph;
 pub mod unweighted;
@@ -118,5 +118,22 @@ mod tests {
         assert!(length > 4);
 
         dump(&graph);
+    }
+}
+
+pub(crate) fn make_safer(input: &str) -> Cow<'_, str> {
+    if let Some(ok_until) = input.find(|ch| ch == '"') {
+        let mut out = String::from(&input[..ok_until]);
+        out.reserve(input.len() - ok_until);
+        let rest = input[ok_until..].chars();
+        for ch in rest {
+            match ch {
+                '"' => out.push_str(r#"\""#),
+                _ => out.push(ch),
+            }
+        }
+        Cow::Owned(out)
+    } else {
+        Cow::Borrowed(input)
     }
 }

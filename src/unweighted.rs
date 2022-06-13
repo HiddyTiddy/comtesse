@@ -1,13 +1,10 @@
 //! An unweighted graph, containing elements of type `V`
 
-use std::{
-    borrow::Cow,
-    fmt::{Debug, Write},
-};
+use std::fmt::{Debug, Write};
 
 use crate::{
     graph::{Graph, Handle},
-    DumpGraphviz,
+    make_safer, DumpGraphviz,
 };
 
 pub type Unweighted<V> = Graph<V, Handle>;
@@ -43,23 +40,6 @@ impl<V> Unweighted<V> {
     pub fn neighbors(&self, vertex: Handle) -> &[Handle] {
         let vertex = vertex.0;
         &self.edges[vertex]
-    }
-}
-
-fn make_safer(input: &str) -> Cow<'_, str> {
-    if let Some(ok_until) = input.find(|ch| ch == '"') {
-        let mut out = String::from(&input[..ok_until]);
-        out.reserve(input.len() - ok_until);
-        let rest = input[ok_until..].chars();
-        for ch in rest {
-            match ch {
-                '"' => out.push_str(r#"\""#),
-                _ => out.push(ch),
-            }
-        }
-        Cow::Owned(out)
-    } else {
-        Cow::Borrowed(input)
     }
 }
 
