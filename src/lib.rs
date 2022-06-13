@@ -3,7 +3,7 @@
 //! Utility crate to handle common tasks that require graphs
 //!
 //! ```
-//! use graph::Graph;
+//! use comtesse::Graph;
 //!
 //! let mut graph = Graph::new();
 //! // insert the numbers 1 to 10 as vertices
@@ -29,7 +29,9 @@ pub struct Graph<V> {
 
 mod graph_macro;
 
-type Handle = usize;
+/// Handle to Vertices in the graoh
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
+pub struct Handle(usize);
 
 // TODO: generic over V, E
 // -> V: Vertex type
@@ -58,11 +60,12 @@ impl<V> Graph<V> {
         let handle = self.vertices.len();
         self.vertices.push(value);
         self.edges.push(Vec::new());
-        handle
+        Handle(handle)
     }
 
     /// Connects two vertices, as given by `from` and `to`
     pub fn add_edge(&mut self, from: Handle, to: Handle) {
+        let from = from.0;
         self.edges[from].push(to);
     }
 
@@ -84,7 +87,7 @@ impl<V> Graph<V> {
         for u in 0..self.vertices.len() {
             for v in 0..self.vertices.len() {
                 if condition(&self.vertices[u], &self.vertices[v]) {
-                    self.add_edge(u, v)
+                    self.add_edge(Handle(u), Handle(v))
                 }
             }
         }
@@ -92,6 +95,7 @@ impl<V> Graph<V> {
 
     /// Returns whether the edge starting at `from` and going to `to` exists in the graph
     pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
+        let from = from.0;
         self.edges[from].iter().any(|&idx| idx == to)
     }
 }
@@ -139,7 +143,7 @@ where
             let from = make_safer(&from);
 
             for &to in edge {
-                let to = &self.vertices[to];
+                let to = &self.vertices[to.0];
                 let to = format!("{to:?}");
                 let to = make_safer(&to);
 
@@ -161,7 +165,7 @@ where
             .iter()
             .enumerate()
             .find(|(_, vertex)| **vertex == vertex_value)
-            .map(|(i, _)| i)
+            .map(|(i, _)| Handle(i))
     }
 }
 
