@@ -1,4 +1,4 @@
-//! An unweighted graph, containing elements of type `V`
+//! A unweighted graph, containing elements of type `V`
 
 use std::fmt::{Debug, Write};
 
@@ -9,6 +9,41 @@ use crate::{
     DumpGraphviz, HasEdge,
 };
 
+/// A unweighted graph, containing elements of type `V`
+///
+/// ```
+/// # use comtesse::{unweighted::Unweighted, HasEdge};
+/// let mut graph: Unweighted<_> = ('a'..='h').collect();
+/// graph.construct_edges_from(|&u, &v| {
+///     matches!(
+///         (u, v),
+///         ('f', 'd')
+///             | ('d', 'h')
+///             | ('c', 'g')
+///             | ('c', 'a')
+///             | ('b', 'f')
+///             | ('b', 'e')
+///             | ('a', 'b')
+///             | ('e', 'h')
+///             | ('d', 'g')
+///             | ('d', 'e')
+///             | ('e', 'c')
+///     )
+/// });
+///  
+/// // the graph is connected
+/// assert!(graph.is_connected());
+///  
+/// let a = graph.get_vertex('a').expect("'a' is a vertex in the graph");
+/// let b = graph.get_vertex('b').expect("'b' is a vertex in the graph");
+/// let c = graph.get_vertex('c').expect("'c' is a vertex in the graph");
+///  
+/// // there is an edge from a to b
+/// assert!(graph.has_edge(a, b));
+///  
+/// // even though there is an edge from c to a, there is no edge from a to c
+/// assert!(!graph.has_edge(a, c));
+/// ```
 pub type Unweighted<V> = Graph<V, Handle>;
 
 impl<V> Unweighted<V> {
@@ -111,8 +146,8 @@ where
             edges.push(
                 neighbors
                     .iter()
-                    .filter(|&elem| !W::is_zero(&elem.weight))
-                    .map(|elem| elem.to)
+                    .filter(|&elem| !W::is_zero(&elem.weight()))
+                    .map(|elem| elem.pointing_to())
                     .collect(),
             )
         }

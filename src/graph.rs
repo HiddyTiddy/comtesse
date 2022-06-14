@@ -2,6 +2,9 @@
 
 use std::iter::repeat_with;
 
+/// A generic Graph, containing vertices of type `V`, connected by type `E`
+///
+/// This is rarely used directly. Instead use [crate::unweighted::Unweighted] or [crate::weighted::Weighted]
 pub struct Graph<V, E> {
     pub(crate) vertices: Vec<V>,
     pub(crate) edges: Vec<Vec<E>>,
@@ -71,6 +74,8 @@ impl<V, E> Graph<V, E>
 where
     V: Eq,
 {
+    /// Returns a handle to the first vertex containing the value
+    /// specified by `vertex_value` or `None` if no such vertex exists
     pub fn get_vertex(&self, vertex_value: V) -> Option<Handle> {
         self.vertices
             .iter()
