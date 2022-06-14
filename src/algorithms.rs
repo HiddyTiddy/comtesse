@@ -1,4 +1,7 @@
-use crate::{graph::Graph, HasEdge};
+use crate::{
+    graph::{Graph, Handle},
+    HasEdge,
+};
 
 impl<V, E> Graph<V, E>
 where
@@ -6,7 +9,23 @@ where
 {
     /// Returns whether the given graph is connected
     pub fn is_connected(&self) -> bool {
-        todo!()
+        if self.vertices.is_empty() {
+            return true;
+        }
+        let mut stack = vec![0];
+        let mut seen = vec![false; self.vertices.len()];
+
+        while let Some(top) = stack.pop() {
+            seen[top] = true;
+
+            for Handle(neighbor) in self.connected_neighbors(Handle(top)) {
+                if !seen[neighbor] {
+                    stack.push(neighbor);
+                }
+            }
+        }
+
+        seen.iter().all(|&seen| seen)
     }
 }
 
@@ -35,6 +54,7 @@ mod tests {
             graph.get_vertex('a').unwrap(),
             graph.get_vertex('b').unwrap(),
         );
+
         graph.remove_edge(
             graph.get_vertex('a').unwrap(),
             graph.get_vertex('d').unwrap(),
