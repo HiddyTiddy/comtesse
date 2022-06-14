@@ -40,6 +40,10 @@ pub(crate) trait DumpGraphviz {
 pub trait HasEdge {
     /// should return true if and only if an edge exists
     fn has_edge(&self, from: Handle, to: Handle) -> bool;
+
+    /// should return iterator to all neighbors of `vertex`
+    // TODO: dynamic dispatch probably not very good
+    fn connected_neighbors<'a>(&'a self, vertex: Handle) -> Box<dyn Iterator<Item = Handle> + 'a>;
 }
 
 #[cfg(test)]
@@ -48,6 +52,7 @@ mod tests {
 
     use crate::{graph::Graph, unweighted::Unweighted, DumpGraphviz, HasEdge};
 
+    #[allow(dead_code)]
     pub(crate) fn dump<V, E>(graph: &Graph<V, E>)
     where
         V: std::fmt::Debug,
@@ -134,8 +139,6 @@ mod tests {
         }
 
         assert!(length > 4);
-
-        dump(&graph);
     }
 }
 

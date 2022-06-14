@@ -44,9 +44,13 @@ impl<V> Unweighted<V> {
     ///
     /// Panics if edge does not exist
     pub fn remove_edge(&mut self, from: Handle, to: Handle) {
-        let to = self.edges[from.0].iter().find(|&idx| *idx == to);
+        let to = self.edges[from.0]
+            .iter()
+            .enumerate()
+            .find(|(_, &idx)| idx == to)
+            .map(|(to, _)| to);
         let to = if let Some(to) = to {
-            to.0
+            to
         } else {
             panic!("edge does not exist");
         };
@@ -88,6 +92,11 @@ impl<V> HasEdge for Unweighted<V> {
     fn has_edge(&self, from: Handle, to: Handle) -> bool {
         let from = from.0;
         self.edges[from].iter().any(|&idx| idx == to)
+    }
+
+    fn connected_neighbors<'a>(&'a self, vertex: Handle) -> Box<dyn Iterator<Item = Handle> + 'a> {
+        let vertex = vertex.0;
+        Box::new(self.edges[vertex].iter().copied())
     }
 }
 

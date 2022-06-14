@@ -67,10 +67,11 @@ where
     pub fn remove_edge(&mut self, from: Handle, to: Handle) {
         let to = self.edges[from.0]
             .iter()
-            .find(|&Connection { to: idx, .. }| *idx == to)
-            .map(|Connection { to, .. }| to);
+            .enumerate()
+            .find(|(_, &Connection { to: idx, .. })| idx == to)
+            .map(|(to, _)| to);
         let to = if let Some(to) = to {
-            to.0
+            to
         } else {
             panic!("edge does not exist");
         };
@@ -94,6 +95,11 @@ where
         self.edges[from]
             .iter()
             .any(|&Connection { to: idx, .. }| idx == to)
+    }
+
+    fn connected_neighbors<'a>(&'a self, vertex: Handle) -> Box<dyn Iterator<Item = Handle> + 'a> {
+        let vertex = vertex.0;
+        Box::new(self.edges[vertex].iter().map(|&Connection { to, .. }| to))
     }
 }
 
@@ -154,7 +160,26 @@ mod tests {
 
         let weight = graph.get_edge(a, b).expect("'a' -> 'b' exists");
         assert!((weight - 9.0).abs() < 0.1);
+    }
 
-        crate::tests::dump(&graph);
+    #[test]
+    fn remove_edge() {
+        let mut graph: Weighted<_, f32> = ('a'..='f').collect();
+        graph.construct_edges_from(|&from, &to| match (from, to) {
+            ('a', 'b') => Some(9.0),
+            ('a', 'd') => Some(8.0),
+            ('b', 'c') => Some(1.0),
+            ('b', 'e') => Some(3.0),
+            ('c', 'e') => Some(1.0),
+            ('c', 'd') => Some(5.0),
+            ('d', 'f') => Some(8.0),
+            ('e', 'f') => Some(6.0),
+            _ => None,
+        });
+
+        graph.remove_edge(
+            graph.get_vertex('a').unwrap(),
+            graph.get_vertex('b').unwrap(),
+        );
     }
 }
