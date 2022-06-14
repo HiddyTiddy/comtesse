@@ -50,6 +50,11 @@ impl<V, E> Graph<V, E> {
     pub fn num_edges(&self) -> usize {
         self.edges.iter().map(|elem| elem.len()).sum()
     }
+
+    /// Returns the value associated with `vertex`
+    pub fn vertex_value(&self, vertex: Handle) -> &V {
+        &self.vertices[vertex.0]
+    }
 }
 
 impl<V, E> FromIterator<V> for Graph<V, E> {
