@@ -4,7 +4,9 @@ use std::fmt::{Debug, Write};
 
 use crate::{
     graph::{Graph, Handle},
-    make_safer, DumpGraphviz,
+    make_safer,
+    weighted::Weighted,
+    DumpGraphviz,
 };
 
 pub type Unweighted<V> = Graph<V, Handle>;
@@ -70,4 +72,58 @@ impl<V: Debug> DumpGraphviz for Unweighted<V> {
 
         Ok(())
     }
+}
+
+impl<V, W> From<Weighted<V, W>> for Unweighted<V>
+where
+    W: Copy + num_traits::Num,
+{
+    /// creates a new graph based on `weighted`, ignoring all nonzero weights
+    fn from(weighted: Weighted<V, W>) -> Self {
+        let mut edges = Vec::with_capacity(weighted.vertices.len());
+        for neighbors in weighted.edges {
+            edges.push(
+                neighbors
+                    .iter()
+                    .filter(|&elem| !W::is_zero(&elem.weight))
+                    .map(|elem| elem.to)
+                    .collect(),
+            )
+        }
+        Unweighted {
+            vertices: weighted.vertices,
+            edges,
+        }
+    }
+}
+
+#[test]
+fn from_weighted() {
+    let mut graph: Weighted<_, f32> = ('a'..='f').collect();
+    graph.construct_edges_from(|&from, &to| match (from, to) {
+        ('a', 'b') => Some(9.0),
+        ('a', 'd') => Some(8.0),
+        ('b', 'c') => Some(0.0),
+        ('b', 'e') => Some(3.0),
+        ('c', 'e') => Some(1.0),
+        ('c', 'd') => Some(5.0),
+        ('d', 'f') => Some(8.0),
+        ('e', 'f') => Some(6.0),
+        _ => None,
+    });
+
+    let a = graph.get_vertex('a').expect("'a' is in V");
+    let b = graph.get_vertex('b').expect("'b' is in V");
+
+    let weight = graph.get_edge(a, b).expect("'a' -> 'b' exists");
+    assert!((weight - 9.0).abs() < 0.1);
+    let graph: Unweighted<_> = graph.into();
+    assert!(graph.edge_exists(
+        graph.get_vertex('a').unwrap(),
+        graph.get_vertex('d').unwrap()
+    ));
+    assert!(!graph.edge_exists(
+        graph.get_vertex('b').unwrap(),
+        graph.get_vertex('c').unwrap()
+    ));
 }
