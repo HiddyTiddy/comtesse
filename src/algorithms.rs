@@ -1,5 +1,7 @@
 //! various algorithms on graphs
 
+use std::collections::VecDeque;
+
 use crate::{
     graph::{Graph, Handle},
     unweighted::Unweighted,
@@ -65,11 +67,83 @@ where
 
         seen.iter().all(|&seen| seen)
     }
+
+    /// Finds the shortest path between `start` and `end`.
+    ///
+    /// ```
+    /// let mut graph: comtesse::unweighted::Unweighted<_> = ('a'..='h').collect();
+    /// graph.construct_edges_from(|&u, &v| {
+    ///     matches!(
+    ///         (u, v),
+    ///         ('f', 'd')
+    ///             | ('d', 'h')
+    ///             | ('c', 'g')
+    ///             | ('c', 'a')
+    ///             | ('b', 'f')
+    ///             | ('b', 'e')
+    ///             | ('a', 'b')
+    ///             | ('e', 'h')
+    ///             | ('d', 'g')
+    ///             | ('d', 'e')
+    ///             | ('e', 'c')
+    ///     )
+    /// });
+    ///
+    /// let a = graph.get_vertex('a').unwrap();
+    /// let d = graph.get_vertex('d').unwrap();
+    ///
+    /// let path_ad = graph.shortest_path_unweighted(a, d);
+    /// assert_eq!(
+    ///     path_ad,
+    ///     ['a', 'b', 'f', 'd']
+    ///         .iter()
+    ///         .map(|&i| graph.get_vertex(i))
+    ///         .collect(),
+    /// );
+    /// ```
+    ///
+    /// # Running Time
+    /// This algorithm has a running time of `O(n + m)` where `n` is the number of vertices and `m` is the number of edges
+    pub fn shortest_path_unweighted(&self, start: Handle, end: Handle) -> Option<Vec<Handle>> {
+        let start = start.0;
+        let end = end.0;
+
+        let mut queue = VecDeque::new();
+        queue.push_back(start);
+        let mut seen = vec![None; self.size()];
+
+        while let Some(front) = queue.pop_front() {
+            if front == end {
+                break;
+            }
+
+            for Handle(neighbor) in self.connected_neighbors(Handle(front)) {
+                if seen[neighbor].is_none() {
+                    seen[neighbor] = Some(front);
+                    queue.push_back(neighbor);
+                }
+            }
+        }
+
+        let mut path = vec![];
+        let mut cur = end;
+        while cur != start {
+            path.push(Handle(cur));
+            cur = seen[cur]?;
+        }
+        path.push(Handle(start));
+
+        Some(path.iter().rev().copied().collect())
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{unweighted::Unweighted, weighted::Weighted};
+    use crate::{
+        graph::{Graph, Handle},
+        unweighted::Unweighted,
+        weighted::Weighted,
+    };
 
     #[test]
     fn is_connected() {
@@ -107,5 +181,77 @@ mod tests {
         let mut graph: Unweighted<_> = ('a'..='c').collect();
         graph.construct_edges_from(|&from, &to| matches!((from, to), ('b', 'a') | ('c', 'a')));
         assert!(graph.is_connected());
+    }
+
+    fn assert_one_of_paths<V, E>(
+        graph: &Graph<V, E>,
+        actual: Option<Vec<Handle>>,
+        expected: &[&[V]],
+    ) where
+        V: Eq + Clone,
+    {
+        if expected.is_empty() {
+            return;
+        }
+
+        let actual = actual.unwrap();
+
+        for &expected in expected {
+            let expected = expected
+                .iter()
+                .map(|i| graph.get_vertex(i.clone()).unwrap())
+                .collect::<Vec<_>>();
+            if actual == expected {
+                return;
+            }
+        }
+
+        panic!("no path matched with {actual:?}");
+    }
+
+    fn make_graph() -> Unweighted<char> {
+        let mut graph: Unweighted<_> = ('a'..='h').collect();
+        graph.construct_edges_from(|&u, &v| {
+            matches!(
+                (u, v),
+                ('f', 'd')
+                    | ('d', 'h')
+                    | ('c', 'g')
+                    | ('c', 'a')
+                    | ('b', 'f')
+                    | ('b', 'e')
+                    | ('a', 'b')
+                    | ('e', 'h')
+                    | ('d', 'g')
+                    | ('d', 'e')
+                    | ('e', 'c')
+            )
+        });
+        graph
+    }
+
+    #[test]
+    fn shortest_path() {
+        let graph = make_graph();
+
+        let a = graph.get_vertex('a').unwrap();
+        let g = graph.get_vertex('g').unwrap();
+        let d = graph.get_vertex('d').unwrap();
+
+        let path_ag = graph.shortest_path_unweighted(a, g);
+        assert_one_of_paths(
+            &graph,
+            path_ag,
+            &[&['a', 'b', 'e', 'c', 'g'], &['a', 'b', 'f', 'd', 'g']],
+        );
+
+        let path_ad = graph.shortest_path_unweighted(a, d);
+        assert_eq!(
+            path_ad,
+            ['a', 'b', 'f', 'd']
+                .iter()
+                .map(|&i| graph.get_vertex(i))
+                .collect(),
+        );
     }
 }
