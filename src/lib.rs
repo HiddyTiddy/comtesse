@@ -24,12 +24,11 @@
 //! ```
 //!
 //!
-//!
 //! ## Algorithms
 //!
 //! ### Shortest Path in Unweighted Graphs
 //!
-//! ```rs
+//! ```
 //! let mut graph: comtesse::unweighted::Unweighted<_> = ('a'..='f').collect();
 //! graph.construct_edges_from(|&u, &v| {
 //!     matches!(
@@ -72,7 +71,7 @@ pub(crate) trait DumpGraphviz {
     fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error>;
 }
 
-/// A trait that determines whether an edge exists in a given `Graph<V, E>`
+/// Determines whether an edge exists in a given `Graph<V, E>`
 pub trait HasEdge {
     /// should return true if and only if an edge exists
     fn has_edge(&self, from: Handle, to: Handle) -> bool;
