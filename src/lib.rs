@@ -22,6 +22,40 @@
 //!     graph.get_vertex(9).unwrap()
 //! ));
 //! ```
+//!
+//!
+//!
+//! ## Algorithms
+//!
+//! ### Shortest Path in Unweighted Graphs
+//!
+//! ```rs
+//! let mut graph: comtesse::unweighted::Unweighted<_> = ('a'..='f').collect();
+//! graph.construct_edges_from(|&u, &v| {
+//!     matches!(
+//!         (u, v),
+//!         ('f', 'd')
+//!             | ('c', 'a')
+//!             | ('b', 'f')
+//!             | ('b', 'e')
+//!             | ('a', 'b')
+//!             | ('d', 'e')
+//!             | ('e', 'c')
+//!     )
+//! });
+//!
+//! let a = graph.get_vertex('a').unwrap();
+//! let d = graph.get_vertex('d').unwrap();
+//!
+//! let path_ad = graph.shortest_path_unweighted(a, d);
+//! assert_eq!(
+//!     path_ad,
+//!     ['a', 'b', 'f', 'd']
+//!         .iter()
+//!         .map(|&i| graph.get_vertex(i))
+//!         .collect(),
+//! );
+//! ```
 
 #![deny(missing_docs)]
 
