@@ -3,7 +3,7 @@
 //! Utility crate to handle common tasks that require graphs
 //!
 //! ```
-//! use comtesse::unweighted::Unweighted;
+//! use comtesse::{unweighted::Unweighted, HasEdge};
 //!
 //! let mut graph = Unweighted::new();
 //! // insert the numbers 1 to 10 as vertices
@@ -15,10 +15,19 @@
 //! // construct a graph satisfying the following condition
 //! // there exists an edge (u, v) if the condition holds
 //! graph.construct_edges_from(|&u, &v| u != v && (u + v) % 10 == 0);
+//!
+//! // (1, 9) should be an edge, since (1 + 9) % 10 == 0
+//! assert!(graph.has_edge(
+//!     graph.get_vertex(1).unwrap(),
+//!     graph.get_vertex(9).unwrap()
+//! ));
 //! ```
 
 use std::{borrow::Cow, fmt::Write};
 
+use graph::Handle;
+
+pub mod algorithms;
 pub mod graph;
 pub mod unweighted;
 pub mod weighted;
@@ -27,11 +36,17 @@ pub(crate) trait DumpGraphviz {
     fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error>;
 }
 
+/// A trait that determines whether an edge exists in a given `Graph<V, E>`
+pub trait HasEdge {
+    /// should return true if and only if an edge exists
+    fn has_edge(&self, from: Handle, to: Handle) -> bool;
+}
+
 #[cfg(test)]
 mod tests {
     use std::{collections::HashSet, io::Write};
 
-    use crate::{graph::Graph, unweighted::Unweighted, DumpGraphviz};
+    use crate::{graph::Graph, unweighted::Unweighted, DumpGraphviz, HasEdge};
 
     pub(crate) fn dump<V, E>(graph: &Graph<V, E>)
     where
@@ -82,8 +97,8 @@ mod tests {
         let six = graph.get_vertex(6).expect("6 is in 1..=10");
         let seven = graph.get_vertex(7).expect("7 is in 1..=10");
 
-        assert!(graph.edge_exists(two, six));
-        assert!(!graph.edge_exists(two, seven));
+        assert!(graph.has_edge(two, six));
+        assert!(!graph.has_edge(two, seven));
     }
 
     #[test]

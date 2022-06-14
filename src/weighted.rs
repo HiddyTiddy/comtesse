@@ -4,7 +4,7 @@ use std::fmt::Write;
 
 use crate::{
     graph::{Graph, Handle},
-    make_safer, DumpGraphviz,
+    make_safer, DumpGraphviz, HasEdge,
 };
 
 /// A Connection between two vertices, also called 'Edge'.
@@ -49,14 +49,6 @@ where
         }
     }
 
-    /// Returns whether the edge starting at `from` and going to `to` exists in the graph
-    pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
-        let from = from.0;
-        self.edges[from]
-            .iter()
-            .any(|&Connection { to: idx, .. }| idx == to)
-    }
-
     pub fn get_edge(&self, from: Handle, to: Handle) -> Option<W> {
         let from = from.0;
         self.edges[from]
@@ -69,6 +61,19 @@ where
     pub fn neighbors(&self, vertex: Handle) -> &[Connection<W>] {
         let vertex = vertex.0;
         &self.edges[vertex]
+    }
+}
+
+impl<V, W> HasEdge for Weighted<V, W>
+where
+    W: num_traits::Num + Copy,
+{
+    /// Returns whether the edge starting at `from` and going to `to` exists in the graph
+    fn has_edge(&self, from: Handle, to: Handle) -> bool {
+        let from = from.0;
+        self.edges[from]
+            .iter()
+            .any(|&Connection { to: idx, .. }| idx == to)
     }
 }
 
@@ -96,7 +101,7 @@ where
                 let to = format!("{to:?}");
                 let to = make_safer(&to);
 
-                writeln!(output, "  \"{from}\" -> \"{to}\" [label=\"{weight:?}\"];\n")?;
+                writeln!(output, "  \"{from}\" -> \"{to}\" [label=\"{weight:?}\"];")?;
             }
         }
         writeln!(output, "}}")?;

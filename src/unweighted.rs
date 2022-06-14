@@ -6,7 +6,7 @@ use crate::{
     graph::{Graph, Handle},
     make_safer,
     weighted::Weighted,
-    DumpGraphviz,
+    DumpGraphviz, HasEdge,
 };
 
 pub type Unweighted<V> = Graph<V, Handle>;
@@ -30,12 +30,6 @@ impl<V> Unweighted<V> {
                 }
             }
         }
-    }
-
-    /// Returns whether the edge starting at `from` and going to `to` exists in the graph
-    pub fn edge_exists(&self, from: Handle, to: Handle) -> bool {
-        let from = from.0;
-        self.edges[from].iter().any(|&idx| idx == to)
     }
 
     /// returns a list of neighbors of `vertex` in the graph
@@ -71,6 +65,14 @@ impl<V: Debug> DumpGraphviz for Unweighted<V> {
         writeln!(output, "}}")?;
 
         Ok(())
+    }
+}
+
+impl<V> HasEdge for Unweighted<V> {
+    /// Returns whether the edge starting at `from` and going to `to` exists in the graph
+    fn has_edge(&self, from: Handle, to: Handle) -> bool {
+        let from = from.0;
+        self.edges[from].iter().any(|&idx| idx == to)
     }
 }
 
@@ -118,11 +120,11 @@ fn from_weighted() {
     let weight = graph.get_edge(a, b).expect("'a' -> 'b' exists");
     assert!((weight - 9.0).abs() < 0.1);
     let graph: Unweighted<_> = graph.into();
-    assert!(graph.edge_exists(
+    assert!(graph.has_edge(
         graph.get_vertex('a').unwrap(),
         graph.get_vertex('d').unwrap()
     ));
-    assert!(!graph.edge_exists(
+    assert!(!graph.has_edge(
         graph.get_vertex('b').unwrap(),
         graph.get_vertex('c').unwrap()
     ));
