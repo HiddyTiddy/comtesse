@@ -114,11 +114,6 @@ fn from_weighted() {
         _ => None,
     });
 
-    let a = graph.get_vertex('a').expect("'a' is in V");
-    let b = graph.get_vertex('b').expect("'b' is in V");
-
-    let weight = graph.get_edge(a, b).expect("'a' -> 'b' exists");
-    assert!((weight - 9.0).abs() < 0.1);
     let graph: Unweighted<_> = graph.into();
     assert!(graph.has_edge(
         graph.get_vertex('a').unwrap(),
