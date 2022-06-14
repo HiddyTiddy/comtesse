@@ -23,6 +23,8 @@
 //! ));
 //! ```
 
+#![deny(missing_docs)]
+
 use std::{borrow::Cow, fmt::Write};
 
 use graph::Handle;
