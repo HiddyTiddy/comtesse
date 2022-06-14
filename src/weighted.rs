@@ -49,12 +49,32 @@ where
         }
     }
 
+    /// Returns `Some(weight)` if the edge exists where `weight` is the weight of the found edge.
+    /// Otherwise returns None
     pub fn get_edge(&self, from: Handle, to: Handle) -> Option<W> {
         let from = from.0;
         self.edges[from]
             .iter()
             .find(|&Connection { to: idx, .. }| *idx == to)
             .map(|Connection { weight, .. }| *weight)
+    }
+
+    /// Removes the edge going from `from` to `to`.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if edge does not exist
+    pub fn remove_edge(&mut self, from: Handle, to: Handle) {
+        let to = self.edges[from.0]
+            .iter()
+            .find(|&Connection { to: idx, .. }| *idx == to)
+            .map(|Connection { to, .. }| to);
+        let to = if let Some(to) = to {
+            to.0
+        } else {
+            panic!("edge does not exist");
+        };
+        self.edges[from.0].swap_remove(to);
     }
 
     /// returns a list of neighbors of `vertex` in the graph

@@ -37,6 +37,21 @@ impl<V> Unweighted<V> {
         let vertex = vertex.0;
         &self.edges[vertex]
     }
+
+    /// Removes the edge going from `from` to `to`.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if edge does not exist
+    pub fn remove_edge(&mut self, from: Handle, to: Handle) {
+        let to = self.edges[from.0].iter().find(|&idx| *idx == to);
+        let to = if let Some(to) = to {
+            to.0
+        } else {
+            panic!("edge does not exist");
+        };
+        self.edges[from.0].swap_remove(to);
+    }
 }
 
 impl<V: Debug> DumpGraphviz for Unweighted<V> {
