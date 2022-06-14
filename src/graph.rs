@@ -11,7 +11,7 @@ pub struct Graph<V, E> {
 }
 
 /// Handle to Vertices in the graph
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Debug)]
 pub struct Handle(pub(crate) usize);
 
 impl<V, E> Graph<V, E> {
