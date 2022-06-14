@@ -3,7 +3,7 @@
 //! Utility crate to handle common tasks that require graphs
 //!
 //! ```
-//! use comtesse::Unweighted;
+//! use comtesse::unweighted::Unweighted;
 //!
 //! let mut graph = Unweighted::new();
 //! // insert the numbers 1 to 10 as vertices
@@ -40,6 +40,9 @@ mod tests {
     {
         let mut graph_str = String::new();
         graph.dump(&mut graph_str).unwrap();
+        if std::fs::File::open("dump.dot").is_ok() {
+            std::fs::remove_file("dump.dot").unwrap();
+        }
         std::fs::File::create("dump.dot")
             .unwrap()
             .write_all(graph_str.as_bytes())
