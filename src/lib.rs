@@ -62,7 +62,7 @@ use std::{borrow::Cow, fmt::Write};
 
 use graph::Handle;
 
-pub mod algorithms;
+mod algorithms;
 pub mod graph;
 pub mod unweighted;
 pub mod weighted;
