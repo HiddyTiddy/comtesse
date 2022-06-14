@@ -7,10 +7,14 @@ use crate::{
     make_safer, DumpGraphviz,
 };
 
+/// A Connection between two vertices, also called 'Edge'.
+/// The type `W` can be any numeric type (any type implementing num_traits::Num) and should be efficiently Copy-able
+///
+/// This struct is not intended to be constructed manually.
 #[derive(Clone, Copy)]
 pub struct Connection<W>
 where
-    W: Copy,
+    W: num_traits::Num + Copy,
 {
     pub to: Handle,
     pub weight: W,
@@ -20,7 +24,7 @@ pub type Weighted<V, W> = Graph<V, Connection<W>>;
 
 impl<V, W> Weighted<V, W>
 where
-    W: Copy,
+    W: num_traits::Num + Copy,
 {
     /// Connects two vertices, as given by `from` and `to` with an edge of weight `weight`
     pub fn add_edge(&mut self, from: Handle, to: Handle, weight: W) {
@@ -71,7 +75,7 @@ where
 impl<V, W> DumpGraphviz for Weighted<V, W>
 where
     V: std::fmt::Debug,
-    W: std::fmt::Debug + Copy,
+    W: std::fmt::Debug + num_traits::Num + Copy,
 {
     fn dump(&self, output: &mut dyn Write) -> Result<(), std::fmt::Error> {
         writeln!(output, "digraph {{")?;
