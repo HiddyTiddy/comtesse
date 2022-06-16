@@ -135,6 +135,36 @@ where
 
         Some(path.iter().rev().copied().collect())
     }
+
+    /// Finds the shortest distance between two vertices in the graph or returns None if no path
+    /// exists
+    pub fn shortest_distance_unweighted(&self, start: Handle, end: Handle) -> Option<usize> {
+        let start = start.0;
+        let end = end.0;
+
+        let mut queue = VecDeque::new();
+        queue.push_back(start);
+        let mut seen = vec![None; self.size()];
+        seen[start] = Some(0);
+
+        while let Some(front) = queue.pop_front() {
+            if front == end {
+                break;
+            }
+
+            // unwrap is fine here because this is always set at this point
+            let dist = seen[front].unwrap();
+
+            for Handle(neighbor) in self.connected_neighbors(Handle(front)) {
+                if seen[neighbor].is_none() {
+                    seen[neighbor] = Some(dist + 1);
+                    queue.push_back(neighbor);
+                }
+            }
+        }
+
+        seen[end]
+    }
 }
 
 #[cfg(test)]
@@ -159,7 +189,6 @@ mod tests {
             ('e', 'f') => Some(6.0),
             _ => None,
         });
-        // crate::tests::dump(&graph);
 
         assert!(graph.is_connected());
 
@@ -244,6 +273,8 @@ mod tests {
             path_ag,
             &[&['a', 'b', 'e', 'c', 'g'], &['a', 'b', 'f', 'd', 'g']],
         );
+
+        assert_eq!(graph.shortest_distance_unweighted(a, g), Some(4));
 
         let path_ad = graph.shortest_path_unweighted(a, d);
         assert_eq!(
